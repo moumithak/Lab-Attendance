@@ -1,0 +1,14 @@
+# Ignore Java build files
+target/
+*.class
+*.jar
+node_modules/
+package-lock.json
+package.json
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
