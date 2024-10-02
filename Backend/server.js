@@ -4,9 +4,9 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const studentRoutes = require('./routes/student');
 const verifyQRCodeRoutes = require('./routes/verifyQRCode'); // Import the new QR code verification route
-const verifyLocationRoute = require('./routes/verifyLocation');
+const verifyLocationRoutes = require('./routes/verifyLocation');
 const attendanceRoutes = require('./routes/attendanceRoutes');
-
+const saveRoutes=require('./routes/save');
 
 const app = express();
 
@@ -16,9 +16,10 @@ app.use(express.json());
 
 // Routes
 app.use('/api/student', studentRoutes);
-app.use('/api/verifyQRCode', verifyQRCodeRoutes); // Use the QR code verification route
-app.use('/api/verifyLocation', verifyLocationRoute);
+app.use('/api/verifyQRCode', verifyQRCodeRoutes); 
+app.use('/api/verifyLocation', verifyLocationRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/save',saveRoutes);
 // Error handling for invalid routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

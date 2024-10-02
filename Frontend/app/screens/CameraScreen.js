@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import * as Location from 'expo-location';
-import * as Application from 'expo-application'; 
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 const BASE_URL = 'http://192.168.29.150:5000';
@@ -11,40 +10,30 @@ function CameraScreen(props) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [data, setData] = useState('');
-  const [deviceId, setDeviceId] = useState(null);
+  const [location, setLocation] = useState(null); // Store user location here
   const [locationVerified, setLocationVerified] = useState(null);
   const navigation = useNavigation();
 
   const route = useRoute();
   const rollNumber = route.params?.rollNumber || 'N/A';
   const courseID = route.params?.courseID || 'N/A';
-  const status = "Logged In"; // Assuming status is 'Logged In' for this example
+  const status = route.params?.status || 'N/A';
   const loginTime = new Date().toLocaleString(); // Current time as login time
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
-      console.log('Camera permission status:', status);
-    };
-
-    const fetchDeviceId = async () => {
-      const id = Application.androidId || Application.iosId;
-      setDeviceId(id);
-      console.log('Device ID:', id);
     };
 
     getBarCodeScannerPermissions();
-    fetchDeviceId();
   }, []);
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
     setData(data);
-  
-    console.log('Sending data to backend for verification:', data);
+
     const response = await verifyQRCode(data.trim());
-    console.log('Response from backend:', response);
   
     if (response.valid) {
       Alert.alert('Success', 'The QR code is valid. Proceeding to location verification...', [
@@ -54,6 +43,7 @@ function CameraScreen(props) {
             const isLocationVerified = await requestLocationPermission(response.location);
             setLocationVerified(isLocationVerified);
             showLocationVerificationDialog(isLocationVerified);
+            await saveDataToBackend(isLocationVerified, status, response.systemId);
           }
         }
       ]);
@@ -80,10 +70,15 @@ function CameraScreen(props) {
   const requestLocationPermission = async (qrCodeLocation) => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status === 'granted') {
-      const currentLocation = await Location.getCurrentPositionAsync({});
-      console.log('Current location:', currentLocation);
-      const isValidLocation = await sendLocationToBackend(currentLocation.coords, qrCodeLocation);
-      return isValidLocation;
+      try {
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation.coords); // Save the location
+        const isValidLocation = await sendLocationToBackend(currentLocation.coords, qrCodeLocation);
+        return isValidLocation;
+      } catch (error) {
+        console.error('Error fetching location:', error);
+        return false;
+      }
     } else {
       Alert.alert('Permission to access location was denied');
       return false;
@@ -91,6 +86,10 @@ function CameraScreen(props) {
   };
 
   const sendLocationToBackend = async (currentLocation, qrCodeLocation) => {
+    if (!currentLocation || !qrCodeLocation) {
+      console.error('Current location or QR code location is missing.');
+      return false;
+    }
     try {
       const response = await fetch(`${BASE_URL}/api/verifyLocation`, {
         method: 'POST',
@@ -105,11 +104,9 @@ function CameraScreen(props) {
             longitude: qrCodeLocation.longitude,
             range: qrCodeLocation.range,
           },
-          deviceId,
         }),
       });
       const result = await response.json();
-      console.log('Location verification response:', result);
       return result.valid;
     } catch (error) {
       console.error('Error sending location:', error);
@@ -142,6 +139,49 @@ function CameraScreen(props) {
     );
   };
 
+  const saveDataToBackend = async (isLocationVerified, status, systemId) => {
+    
+    try {
+      const { coords } = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = coords; // Destructure to get latitude and longitude
+      
+      const currentTime = new Date(); // Get the current time
+
+      const response = await fetch(`${BASE_URL}/api/save/${status}`, { // Dynamic endpoint based on status
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rollNumber,
+          courseID,
+          systemId, // Make sure to send systemId
+          location: { // Use the stored location
+            latitude,
+            longitude,
+          },
+          status,
+          loginTime: status === 'login' ? currentTime : undefined, // Save current time for login, undefined for logout
+          logoutTime: status === 'logout' ? currentTime : undefined, // Save current time for logout
+          verificationStatus: isLocationVerified, // Include verification status
+        }),
+      });
+      if (response.ok) {
+        Alert.alert(
+          `${status === 'login' ? 'Login' : 'Logout'} Successful`,
+          `Your ${status} has been recorded.`
+        );
+      } else {
+        const errorResponse = await response.json(); // Log error response
+        console.error('Error response from backend:', errorResponse);
+        Alert.alert(
+          'Error',
+          `Failed to save ${status} data: ` + errorResponse.message
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Could not connect to server.');
+    }
+  };
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission...</Text>;
@@ -190,16 +230,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dataContainer: {
-    position: 'absolute',
-    bottom: 100,
-    backgroundColor: 'white',
+    margin: 20,
     padding: 10,
-    borderRadius: 10,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   dataText: {
     fontSize: 16,
-    color: 'black',
   },
 });
 
-export default CameraScreen; 
+export default CameraScreen;

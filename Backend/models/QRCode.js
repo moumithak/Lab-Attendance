@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 
 const qrCodeSchema = new mongoose.Schema({
-  qrCodeId: { type: String, required: true },
-  qrCodeData: { type: String, required: true, unique: true }, // Ensure this matches the field in the database
+  qrCodeData: { type: String, required: true, unique: true }, 
   systemId: { type: String, required: true },
   location: {
     latitude: { type: Number, required: true },
@@ -11,6 +10,10 @@ const qrCodeSchema = new mongoose.Schema({
   },
 });
 
-const QRCode = mongoose.model('QRCode', qrCodeSchema);
+if (mongoose.models.QRCode) {
+  delete mongoose.models.QRCode;
+}
+
+const QRCode = mongoose.models.QRCode || mongoose.model('QRCode', qrCodeSchema);
 
 module.exports = QRCode;

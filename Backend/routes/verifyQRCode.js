@@ -11,7 +11,6 @@ router.post('/', async (req, res) => {
     const trimmedQRCode = qrCodeData.trim().toLowerCase();
     
     const foundQRCode = await QRCode.findOne({ qrCodeData: trimmedQRCode });
-
     
 
     if (foundQRCode) {

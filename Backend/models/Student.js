@@ -1,14 +1,23 @@
 const mongoose = require('mongoose');
 
-const StudentSchema = new mongoose.Schema({
-  rollNumber: { type: String, required: true, unique: true },
-  courseId: { type: String, required: true },
-  location: { type: String }, // GPS location
-  qrCodeId: { type: String, required: true },
-  status: { type: String },
+const studentSchema = new mongoose.Schema({
+  rollNumber: { type: String, required: true },
+  courseID: { type: String, required: true },
+  location: {
+    latitude: { type: Number, required: true },
+    longitude: { type: Number, required: true },
+  },
+  systemId: { type: String, required: true },
+  status: { type: String, required: true }, // 'login' or 'logout'
   verificationStatus: { type: Boolean, default: false },
-  logintime: { type: Date, default: Date.now },
-  logouttime: { type: Date, default: Date.now }
+  loginTime: { type: Date },  // Only for login
+  logoutTime: { type: Date }  // Only for logout
 });
 
-module.exports = mongoose.model('Student', StudentSchema);
+if (mongoose.models.Student) {
+  delete mongoose.models.Student;
+}
+
+const Student = mongoose.models.Student || mongoose.model('Student', studentSchema);
+module.exports = Student;
+

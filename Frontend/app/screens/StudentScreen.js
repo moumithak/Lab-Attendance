@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
-
-const BASE_URL = 'http://192.168.29.150:5000'; // Replace with your local machine IP address
 
 function StudentScreen(props) {
   const [rollNumber, setRollNumber] = useState('');
@@ -23,7 +20,7 @@ function StudentScreen(props) {
   };
 
   // Function to handle login button press
-  const handleLoginPress = async () => {
+  const handleLoginPress = () => {
     if (!rollNumber || !courseID) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -39,35 +36,11 @@ function StudentScreen(props) {
       return;
     }
 
-    // Send data to backend and await validation (QR code + Location)
-    try {
-      const response = await fetch(`${BASE_URL}/api/student/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          rollNumber: rollNumber,
-          courseID: courseID,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        // If QR code and location are verified
-        navigation.navigate('ScanScreen', { rollNumber, courseID });
-      } else {
-        Alert.alert('Login Failed', 'Verification failed. Please try again.');
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      Alert.alert('Error', 'Unable to connect to the server.');
-    }
+    // Proceed to the Camera screen for verification
+    navigation.navigate('CameraScreen', { rollNumber, courseID, status:'login' });
   };
 
-  // Function to handle logout button press
-  const handleLogoutPress = async () => {
+  const handleLogoutPress = () => {
     if (!rollNumber || !courseID) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -83,31 +56,8 @@ function StudentScreen(props) {
       return;
     }
 
-    // Send data to backend and await validation (QR code + Location)
-    try {
-      const response = await fetch(`${BASE_URL}/api/student/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          rollNumber: rollNumber,
-          courseID: courseID,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        // If QR code and location are verified
-        navigation.navigate('ScanScreen', { rollNumber, courseID });
-      } else {
-        Alert.alert('Logout Failed', 'Verification failed. Please try again.');
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      Alert.alert('Error', 'Unable to connect to the server.');
-    }
+    // Proceed to the Camera screen for verification
+    navigation.navigate('ScanScreen', { rollNumber, courseID, status:'logout'});
   };
 
   return (
