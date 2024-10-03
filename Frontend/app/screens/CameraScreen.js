@@ -4,7 +4,7 @@ import { BarCodeScanner } from 'expo-barcode-scanner';
 import * as Location from 'expo-location';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
-const BASE_URL = 'http://192.168.29.150:5000';
+const BASE_URL = 'http://10.0.2.2:5000';
 
 function CameraScreen(props) {
   const [hasPermission, setHasPermission] = useState(null);

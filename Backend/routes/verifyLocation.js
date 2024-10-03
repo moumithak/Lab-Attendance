@@ -20,7 +20,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 // Route to verify the location
 router.post('/', (req, res) => {
     const { userLocation, qrCodeLocation } = req.body;
-
+    console.log(req.body);
     console.log('User Location:', userLocation);
     console.log('QR Code Location:', qrCodeLocation);
 

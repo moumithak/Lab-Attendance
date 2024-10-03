@@ -8,10 +8,10 @@ router.post('/', async (req, res) => {
 
   try {
     // Trim and convert to lowercase for case-insensitive comparison
-    const trimmedQRCode = qrCodeData.trim().toLowerCase();
-    
+    const trimmedQRCode = qrCodeData.trim();
+    console.log(trimmedQRCode);
     const foundQRCode = await QRCode.findOne({ qrCodeData: trimmedQRCode });
-    
+    console.log(foundQRCode);
 
     if (foundQRCode) {
       return res.json({

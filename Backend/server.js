@@ -34,6 +34,19 @@ mongoose.connect('mongodb+srv://moumi17:km123@cluster0.nuu2n.mongodb.net/SystemL
     console.error('Error connecting to MongoDB', err);
   });
 
+  app.get('/api/attendances/:courseID', async (req, res) => {
+    const { courseID } = req.params;
+  
+    try {
+      const attendances = await Attendance.find({ courseID: courseID });
+      console.log(attendances);
+      res.json(attendances);
+
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

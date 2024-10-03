@@ -65,7 +65,7 @@ def generate_qr_code_and_store(system_id, latitude, longitude, range_value):
 
 # Example: Generate QR codes and store corresponding data
 for i in range(1, 11):
-    system_id = f"System-{i}"  # Example systemId
+    system_id = f"system-{i}"  # Example systemId
     latitude = 11.02432494247204  # Random latitude for example
     longitude = 77.0036843671046  # Random longitude for example
     range_value = 50  # Example range in meters

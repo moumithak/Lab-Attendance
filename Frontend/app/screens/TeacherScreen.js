@@ -21,13 +21,6 @@ function TeacherScreen(props) {
         onChangeText={setFacultyID}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-      />
-
       {/* Course ID Input */}
       <TextInput
         style={styles.input}
