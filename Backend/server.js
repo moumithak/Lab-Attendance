@@ -26,7 +26,6 @@ app.get('/api/attendance/:courseID', async (req, res) => {
   try {
     const courseID = req.params.courseID; // Capture the courseID from the URL parameters
     const attendanceRecords = await Attendance.find({ courseID });
-    console.log("Record:", attendanceRecords);
     res.json(attendanceRecords);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving attendance data' });
