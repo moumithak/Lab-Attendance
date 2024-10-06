@@ -175,6 +175,7 @@ function CameraScreen(props) {
         const errorResponse = await response.json();
         console.error('Error response from backend:', errorResponse);
         Alert.alert('Error', `Failed to save ${status} data: ${errorResponse.message}`);
+        navigation.navigate('StudentScreen');
       }
     } catch (error) {
       console.error(error);

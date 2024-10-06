@@ -7,22 +7,45 @@ const Attendance = require('../models/Attendance');
 // POST route for student login
 router.post('/login', async (req, res) => {
   const { rollNumber, courseID, systemId, location, verificationStatus } = req.body;
-  
+
   if (!rollNumber || !courseID || !systemId || !location) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
   try {
+    // Check if there is any active login session for the same systemId and courseID
+    const existingActiveLogin = await Student.findOne({
+      systemId,
+      courseID,
+      status: 'login', 
+    });
+    let existinglogout = null; // Initialize existinglogout here
 
-    // Create a new login record in the Student collection
+    if (existingActiveLogin) {
+      // Only check for logout if an active login exists
+      existinglogout = await Student.findOne({
+        rollNumber: existingActiveLogin.rollNumber,
+        systemId,
+        courseID,
+        status: 'logout',
+      });
+    }
+    if (existingActiveLogin && existinglogout==null) {
+      // If an active session exists, reject the new login attempt
+      return res.status(400).json({ 
+        message: `An active session already exists for system ${systemId} and course ${courseID}. Please use some other system to login.` 
+      });
+    }
+
+    // If no active session exists, proceed with login
     const newLogin = new Student({
       rollNumber,
       courseID,
-      location,
+      location: { latitude: location.latitude, longitude: location.longitude },
       systemId,
       status: 'login',
-      verificationStatus: verificationStatus || false,
-      loginTime: new Date()
+      verificationStatus: false,
+      loginTime: new Date(), // Record the login time
     });
 
     await newLogin.save();
@@ -43,22 +66,28 @@ router.post('/logout', async (req, res) => {
   }
 
   try {
-
     // Create a new logout record in the Student collection
     const newLogout = new Student({
       rollNumber,
-      courseID: req.body.courseID,
+      courseID,
       location,
       systemId,
       status: 'logout',
       verificationStatus: verificationStatus || false,
-      logoutTime: new Date()
+      logoutTime: new Date(), // Record the logout time
     });
 
     await newLogout.save();
     console.log('Student logout recorded successfully');
+
     // Find the matching login record to merge login and logout data
-    const loginRecord = await Student.findOne({ rollNumber, courseID,systemId, status: 'login' });
+    const loginRecord = await Student.findOne({ 
+      rollNumber, 
+      courseID, 
+      systemId, 
+      status: 'login',
+      logoutTime: { $exists: false } // Ensure it’s the active session without logout
+    });
 
     if (!loginRecord) {
       return res.status(400).json({ message: 'No corresponding login record found' });
