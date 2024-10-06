@@ -20,7 +20,7 @@ function FrontScreen({navigation}) {
         style={{ width: 350, height: 350, borderRadius:50}}  
       />
       <Text style={styles.baseText}>
-        Lab Attendance
+        Lab Track
       </Text>
       <View style={styles.fixToText}>
         <Pressable

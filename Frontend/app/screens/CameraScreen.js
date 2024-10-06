@@ -40,7 +40,6 @@ function CameraScreen(props) {
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
     setData(data); // Store QR code data
-    console.log("Data:",data);
 
     const response = await verifyQRCode(data.trim());
     if (response.valid) {
@@ -68,7 +67,6 @@ function CameraScreen(props) {
         body: JSON.stringify({ qrCodeData }),
       });
       const res = await response.json();
-      console.log("QR:",res);
       return res;
     } catch (error) {
       console.error('Error verifying QR Code:', error);
@@ -124,7 +122,6 @@ function CameraScreen(props) {
   };
 
   const showFinalDetailsDialog = async (isLocationValid) => {
-    console.log("Data in dialog:", data);
     Alert.alert('Login Details', 
       `Roll Number: ${rollNumber}\n` +
       `Course ID: ${courseID}\n` +
