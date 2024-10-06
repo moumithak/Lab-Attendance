@@ -26,6 +26,7 @@ router.post('/login', async (req, res) => {
     });
 
     await newLogin.save();
+    console.log('Student login recorded successfully');
     return res.status(201).json({ message: 'Student login recorded successfully' });
   } catch (error) {
     console.error('Error saving login data:', error); // Log the error for debugging
@@ -55,7 +56,7 @@ router.post('/logout', async (req, res) => {
     });
 
     await newLogout.save();
-
+    console.log('Student logout recorded successfully');
     // Find the matching login record to merge login and logout data
     const loginRecord = await Student.findOne({ rollNumber, courseID,systemId, status: 'login' });
 
@@ -77,7 +78,7 @@ router.post('/logout', async (req, res) => {
     });
 
     await newAttendance.save();
-
+    console.log('Student attendance recorded successfully');
     return res.status(201).json({ message: 'Student logout recorded and attendance saved successfully' });
   } catch (error) {
     console.error('Error saving logout data:', error); // Log the error for debugging

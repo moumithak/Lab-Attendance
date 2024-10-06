@@ -35,7 +35,7 @@ def generate_qr_code_and_store(system_id, latitude, longitude, range_value):
         os.makedirs(save_directory)
 
     # Save the QR code image in the specified directory
-    img_filename = os.path.join(save_directory, f"qrcode_{system_id}.png")
+    img_filename = os.path.join(save_directory, f"lab1_{system_id}.png")
     img.save(img_filename)
     print(f"QR code saved as {img_filename} for URL: {url}")
 
@@ -45,7 +45,7 @@ def generate_qr_code_and_store(system_id, latitude, longitude, range_value):
         "_id": ObjectId(),  # Automatically generate an ObjectId
         "qrCodeData": url,
         "systemId": system_id,
-        "locationData": {
+        "location": {
             "latitude": latitude,
             "longitude": longitude,
             "range": range_value

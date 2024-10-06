@@ -4,16 +4,17 @@ import { BarCodeScanner } from 'expo-barcode-scanner';
 import * as Location from 'expo-location';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
-const BASE_URL = 'http://10.0.2.2:5000';
+const BASE_URL = 'http://192.168.29.150:5000';
 
 function CameraScreen(props) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [data, setData] = useState('');
+  const [data, setData] = useState(''); // QR code data
   const [location, setLocation] = useState(null); // Store user location here
   const [locationVerified, setLocationVerified] = useState(null);
-  const navigation = useNavigation();
+  const [systemId, setSystemId] = useState(null); // Store systemId after QR verification
 
+  const navigation = useNavigation();
   const route = useRoute();
   const rollNumber = route.params?.rollNumber || 'N/A';
   const courseID = route.params?.courseID || 'N/A';
@@ -29,21 +30,27 @@ function CameraScreen(props) {
     getBarCodeScannerPermissions();
   }, []);
 
+  useEffect(() => {
+    // This ensures the dialog only shows after data is updated
+    if (data && systemId && locationVerified !== null) {
+      showFinalDetailsDialog(locationVerified); // Trigger final dialog here after all states are set
+    }
+  }, [data, systemId, locationVerified]);
+
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    setData(data);
+    setData(data); // Store QR code data
+    console.log("Data:",data);
 
     const response = await verifyQRCode(data.trim());
-  
     if (response.valid) {
+      setSystemId(response.systemId); // Store systemId
       Alert.alert('Success', 'The QR code is valid. Proceeding to location verification...', [
         {
           text: 'OK', 
           onPress: async () => {
             const isLocationVerified = await requestLocationPermission(response.location);
-            setLocationVerified(isLocationVerified);
-            showLocationVerificationDialog(isLocationVerified);
-            await saveDataToBackend(isLocationVerified, status, response.systemId);
+            setLocationVerified(isLocationVerified); // Now, this will trigger the final dialog
           }
         }
       ]);
@@ -60,7 +67,9 @@ function CameraScreen(props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrCodeData }),
       });
-      return await response.json();
+      const res = await response.json();
+      console.log("QR:",res);
+      return res;
     } catch (error) {
       console.error('Error verifying QR Code:', error);
       return { valid: false };
@@ -114,68 +123,61 @@ function CameraScreen(props) {
     }
   };
 
-  const showLocationVerificationDialog = (isLocationValid) => {
-    Alert.alert(
-      isLocationValid ? 'Location Verified' : 'Location Unverified', 
-      isLocationValid ? 'Location verification successful.' : 'Location verification failed.',
-      [
-        { 
-          text: 'OK', 
-          onPress: () => showFinalDetailsDialog(isLocationValid) 
-        }
-      ]
-    );
-  };
-
   const showFinalDetailsDialog = async (isLocationValid) => {
+    console.log("Data in dialog:", data);
     Alert.alert('Login Details', 
       `Roll Number: ${rollNumber}\n` +
       `Course ID: ${courseID}\n` +
       `Status: ${status}\n` +
       `Login Time: ${loginTime}\n` +
       `Location Verified: ${isLocationValid ? 'Valid' : 'Invalid'}\n` +
-      `QR Code Data: ${data}`, 
-      [{ text: 'OK', onPress: () => navigation.navigate('FrontScreen') }]
+      `QR Code Data: ${data}`, // Include QR code data
+      [{ text: 'OK', onPress: async () => {
+        await saveDataToBackend(isLocationValid, status, systemId); 
+      }}]
     );
   };
-
+  
   const saveDataToBackend = async (isLocationVerified, status, systemId) => {
-    
     try {
       const { coords } = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = coords; // Destructure to get latitude and longitude
-      
       const currentTime = new Date(); // Get the current time
 
-      const response = await fetch(`${BASE_URL}/api/save/${status}`, { // Dynamic endpoint based on status
+      const response = await fetch(`${BASE_URL}/api/save/${status}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rollNumber,
           courseID,
-          systemId, // Make sure to send systemId
-          location: { // Use the stored location
+          systemId,
+          location: {
             latitude,
             longitude,
           },
           status,
-          loginTime: status === 'login' ? currentTime : undefined, // Save current time for login, undefined for logout
-          logoutTime: status === 'logout' ? currentTime : undefined, // Save current time for logout
-          verificationStatus: isLocationVerified, // Include verification status
+          loginTime: status === 'login' ? currentTime : undefined,
+          logoutTime: status === 'logout' ? currentTime : undefined,
+          verificationStatus: isLocationVerified, 
         }),
       });
+
       if (response.ok) {
         Alert.alert(
           `${status === 'login' ? 'Login' : 'Logout'} Successful`,
-          `Your ${status} has been recorded.`
+          `Your ${status} has been recorded.`,
+          [{ text: 'OK', onPress: () => {
+              // Reset states after successful login/logout
+              setScanned(false);
+              setData(''); // Clear QR code data
+              navigation.navigate('FrontScreen');
+            }
+          }]
         );
       } else {
-        const errorResponse = await response.json(); // Log error response
+        const errorResponse = await response.json();
         console.error('Error response from backend:', errorResponse);
-        Alert.alert(
-          'Error',
-          `Failed to save ${status} data: ` + errorResponse.message
-        );
+        Alert.alert('Error', `Failed to save ${status} data: ${errorResponse.message}`);
       }
     } catch (error) {
       console.error(error);
@@ -208,36 +210,28 @@ function CameraScreen(props) {
         <View style={styles.dataContainer}>
           <Text style={styles.dataText}>Scanned Data: {data}</Text>
         </View>
-      ) : (
-        <Text style={styles.scanText}>Point your camera at a QR code to scan</Text>
-      )}
+      ) : null}
     </View>
   );
 }
 
+export default CameraScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanText: {
-    fontSize: 16,
-    color: 'white',
-    backgroundColor: 'black',
-    padding: 10,
-    marginTop: 10,
-    textAlign: 'center',
   },
   dataContainer: {
-    margin: 20,
-    padding: 10,
+    position: 'absolute',
+    bottom: 20,
     backgroundColor: 'white',
+    padding: 10,
     borderRadius: 5,
   },
   dataText: {
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });
-
-export default CameraScreen;

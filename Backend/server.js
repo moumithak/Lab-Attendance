@@ -8,6 +8,8 @@ const verifyLocationRoutes = require('./routes/verifyLocation');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const saveRoutes=require('./routes/save');
 
+const Attendance = require('./models/Attendance');
+
 const app = express();
 
 // Middleware
@@ -20,10 +22,22 @@ app.use('/api/verifyQRCode', verifyQRCodeRoutes);
 app.use('/api/verifyLocation', verifyLocationRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/save',saveRoutes);
-// Error handling for invalid routes
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+app.get('/api/attendance/:courseID', async (req, res) => {
+  try {
+    const courseID = req.params.courseID; // Capture the courseID from the URL parameters
+    const attendanceRecords = await Attendance.find({ courseID });
+    console.log("Record:", attendanceRecords);
+    res.json(attendanceRecords);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving attendance data' });
+  }
 });
+// Error handling for invalid routes
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request for '${req.url}'`);
+  next();
+});
+
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://moumi17:km123@cluster0.nuu2n.mongodb.net/SystemLab?retryWrites=true&w=majority')
@@ -32,19 +46,6 @@ mongoose.connect('mongodb+srv://moumi17:km123@cluster0.nuu2n.mongodb.net/SystemL
   })
   .catch(err => {
     console.error('Error connecting to MongoDB', err);
-  });
-
-  app.get('/api/attendances/:courseID', async (req, res) => {
-    const { courseID } = req.params;
-  
-    try {
-      const attendances = await Attendance.find({ courseID: courseID });
-      console.log(attendances);
-      res.json(attendances);
-
-    } catch (error) {
-      res.status(500).json({ message: 'Server error' });
-    }
   });
 
 // Start the server

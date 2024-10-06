@@ -1,50 +1,56 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { StyleSheet, Text, View, TextInput, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { StyleSheet, Text, View, TextInput, Pressable, Platform, TouchableOpacity } from 'react-native';
 
-function TeacherScreen(props) {
-  const [password, setPassword] = useState('');
-  const [courseID, setCourseID] = useState('');
+function TeacherScreen() {
   const [facultyID, setFacultyID] = useState('');
+  const [courseID, setCourseID] = useState('');
+  const navigation = useNavigation();
+
+  // Validate Faculty ID (Format Example: C6509)
+  const validateFacultyID = (id) => {
+    const facultyIDRegex = /^[A-Za-z]\d{4,5}$/;
+    return facultyIDRegex.test(id);
+  };
+
+  // Validate Course ID (Format: 2 digits, 1 letter, 3 digits)
+  const validateCourseID = (course) => {
+    const courseIDRegex = /^\d{2}[a-zA-Z]\d{3}$/;
+    return courseIDRegex.test(course);
+  };
+
+  const handleViewAttendance = () => {
+    if (!validateFacultyID(facultyID)) {
+      Alert.alert('Invalid Faculty ID', 'Please enter a valid Faculty ID');
+      return;
+    }
+    if (!validateCourseID(courseID)) {
+      Alert.alert('Invalid Course ID', 'Please enter a valid Course ID');
+      return;
+    }
+
+    // Navigate to AttendanceScreen with the valid courseID
+    navigation.navigate('AttendanceScreen', { courseID });
+  };
 
   return (
     <View style={styles.container}>
-      
-
-      {/* Roll Number Input */}
       <TextInput
         style={styles.input}
-        placeholder="FacultyID"
+        placeholder="Faculty ID"
         value={facultyID}
         onChangeText={setFacultyID}
       />
-
-      {/* Course ID Input */}
       <TextInput
         style={styles.input}
         placeholder="Course ID"
         value={courseID}
         onChangeText={setCourseID}
       />
-
-      {/* Login & Logout Buttons */}
-      <View style={styles.fixToText}>
-        <Pressable
-          style={({ pressed }) => [
-            {
-              backgroundColor: pressed ? '#ddd' : '#fff',
-            },
-            styles.customButton,
-          ]}
-          onPress={() => console.log('Login button pressed')}
-        >
-          <Text style={styles.buttonText}>Login</Text>
-        </Pressable>
-
-        
-      </View>
+      <Pressable style={styles.customButton} onPress={handleViewAttendance}>
+        <Text style={styles.buttonText}>View Attendance</Text>
+      </Pressable>
     </View>
   );
 }
@@ -55,10 +61,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: StatusBar.currentHeight,
   },
-  
-
   input: {
     width: '80%',
     height: 60,
@@ -69,34 +73,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 17,
   },
-
-  fixToText: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-
   customButton: {
     borderColor: 'black',
     borderWidth: 3,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    marginHorizontal: 10,
     borderRadius: 10,
   },
-
   buttonText: {
-    color: 'black',
     fontWeight: 'bold',
     textAlign: 'center',
     fontSize: 20,
-  },
-
-  backButton: {
-    position: 'absolute',
-    top: 50,  // Adjust this according to your layout
-    left: 20,
   },
 });
 

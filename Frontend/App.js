@@ -6,6 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import ScannerScreen from './app/screens/ScannerScreen';
+import AttendanceScreen from './app/screens/AttendanceScreen';
 
 import React from 'react';
 import { useCameraPermissions } from "expo-camera";
@@ -25,6 +26,7 @@ export default function App() {
         <Stack.Screen name="ScannerScreen" component={ScannerScreen} options={{ title: 'ScanQR' }} />
         <Stack.Screen name="LocationScreen" component={LocationScreen} options={{ title: 'ScanQR' }} />
         <Stack.Screen name="CameraScreen" component={CameraScreen}  />
+        <Stack.Screen name="AttendanceScreen" component={AttendanceScreen} options={{ title: 'Attendance Report' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

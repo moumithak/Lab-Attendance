@@ -36,8 +36,7 @@ function StudentScreen(props) {
       return;
     }
 
-    // Proceed to the Camera screen for verification
-    navigation.navigate('CameraScreen', { rollNumber, courseID, status:'login' });
+    navigation.navigate('ScanScreen', { rollNumber, courseID, status:'login'});
   };
 
   const handleLogoutPress = () => {
@@ -56,7 +55,6 @@ function StudentScreen(props) {
       return;
     }
 
-    // Proceed to the Camera screen for verification
     navigation.navigate('ScanScreen', { rollNumber, courseID, status:'logout'});
   };
 
