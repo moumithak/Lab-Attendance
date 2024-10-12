@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, FlatList, Button, Alert, Platform } from 'react
 import * as FileSystem from 'expo-file-system'; 
 import * as Sharing from 'expo-sharing'; 
 
-const BASE_URL = 'http://192.168.29.150:5000';
+const BASE_URL = 'http://^^:5000'; // use your laptop's ip address when running in place of ^^
 
 function AttendanceScreen({ route }) {
   const { courseID } = route.params;
