@@ -5,7 +5,6 @@ const QRCode = require('../models/QRCode');
 // Route to verify the QR Code
 router.post('/', async (req, res) => {
   const { qrCodeData } = req.body;
-
   try {
     // Trim and convert to lowercase for case-insensitive comparison
     const trimmedQRCode = qrCodeData.trim();

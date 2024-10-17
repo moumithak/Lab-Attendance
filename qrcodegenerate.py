@@ -14,7 +14,7 @@ def connect_to_mongo():
 # Function to generate QR code and store data in MongoDB
 def generate_qr_code_and_store(system_id, latitude, longitude, range_value):
     # Create the URL with the changing number
-    url = f"https://lab1.co/{system_id}"
+    url = f"https://lab2.co/{system_id}"
 
     # Generate QR code
     qr = qrcode.QRCode(
@@ -28,14 +28,14 @@ def generate_qr_code_and_store(system_id, latitude, longitude, range_value):
     img = qr.make_image(fill='black', back_color='white')
 
     # Define the directory path where the QR code image will be saved
-    save_directory = r"D:\Lab Attendance System\Lab-Attendance\QRCodes"
+    save_directory = r"D:\Lab Attendance System\Lab-Attendance\QRCodes\Lab2"
     
     # Create the directory if it doesn't exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
 
     # Save the QR code image in the specified directory
-    img_filename = os.path.join(save_directory, f"lab1_{system_id}.png")
+    img_filename = os.path.join(save_directory, f"lab2_{system_id}.png")
     img.save(img_filename)
     print(f"QR code saved as {img_filename} for URL: {url}")
 
@@ -44,7 +44,7 @@ def generate_qr_code_and_store(system_id, latitude, longitude, range_value):
     data = {
         "_id": ObjectId(),  # Automatically generate an ObjectId
         "qrCodeData": url,
-        "systemId": system_id,
+        "systemId": f"lab2-{system_id}",
         "location": {
             "latitude": latitude,
             "longitude": longitude,
@@ -64,7 +64,7 @@ def generate_qr_code_and_store(system_id, latitude, longitude, range_value):
     
 
 # Example: Generate QR codes and store corresponding data
-for i in range(1, 11):
+for i in range(1, 81):
     system_id = f"system-{i}"  # Example systemId
     latitude = 11.02432494247204  # Random latitude for example
     longitude = 77.0036843671046  # Random longitude for example
