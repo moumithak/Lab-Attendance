@@ -5,6 +5,6 @@ In frontend,
 Frontend > app > screens > CameraScreen.js 
 and 
 Frontend > app > screens > AttendanceScreen.js
-Change this Url to have your system's ip address
+Change this Url to have your network's ip address
 
-const BASE_URL = 'http://^^:5000'; // use your laptop's ip address when running in place of ^^
+const BASE_URL = 'http://^^:5000'; // use your network's ip address when running in place of ^^
